@@ -73,7 +73,17 @@ pipeline {
                 }
             }
         }
-    }
+
+		stage("Trigger CD pipeline"){
+			steps {
+				build job: "spring-backend-cd",
+				parameters: [
+					string(name: "IMAGE_TAG", value: IMAGE_TAG)
+				]
+			}
+		}
+
+	}
 
     /* ------------------------ EMAIL NOTIFICATIONS ------------------------ */
     post {

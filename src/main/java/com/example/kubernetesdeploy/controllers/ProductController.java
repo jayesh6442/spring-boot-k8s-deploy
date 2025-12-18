@@ -16,6 +16,12 @@ public class ProductController {
         this.productService = productService;
     }
 
+
+    @GetMapping("/jayesh")
+    public String jayesh() {
+        return " this end point is deployed automatically";
+    }
+
     @GetMapping
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
