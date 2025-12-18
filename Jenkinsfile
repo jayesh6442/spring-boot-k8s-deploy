@@ -1,19 +1,19 @@
 pipeline {
     agent any
+
     environment {
-        IMAGE_NAME      = "jayesh1410/spring-backend"
-        DOCKERHUB_USER  = "jayesh1410"
-        IMAGE_TAG = "build-${BUILD_NUMBER}"
+        IMAGE_NAME     = "jayesh1410/spring-backend"
+        IMAGE_TAG      = "build-${BUILD_NUMBER}"
+        DOCKER_CREDS   = "docker-hub-creds"
     }
 
     triggers {
-        pollSCM('* * * * *')
+        pollSCM('H/5 * * * *')   // every 5 mins (safe)
     }
 
     stages {
 
         /* ------------------------ CLONE REPO ------------------------ */
-
         stage('Clone Repo') {
             steps {
                 sshagent(['git-creds']) {
@@ -30,7 +30,6 @@ pipeline {
         }
 
         /* ------------------------ DEBUG WORKSPACE ------------------------ */
-
         stage('Debug Workspace') {
             steps {
                 sh '''
@@ -41,7 +40,7 @@ pipeline {
             }
         }
 
-
+        /* ------------------------ DOCKER BUILD ------------------------ */
         stage('Docker Build') {
             steps {
                 sh '''
@@ -51,33 +50,32 @@ pipeline {
             }
         }
 
-
         /* ------------------------ PUSH TO DOCKER HUB ------------------------ */
-
         stage('Docker Hub Push') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: DOCKER_CREDS,
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
                     sh '''
-                        echo ">>> Pushing image to Docker Hub..."
-
+                        echo ">>> Logging into Docker Hub"
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
-
+                        echo ">>> Pushing image ${IMAGE_NAME}:${IMAGE_TAG}"
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
 
+                        echo ">>> Logging out from Docker Hub"
                         docker logout
                     '''
                 }
             }
         }
-
+    }
 
     /* ------------------------ EMAIL NOTIFICATIONS ------------------------ */
-
     post {
         success {
             emailext(
@@ -85,7 +83,10 @@ pipeline {
                 subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """Hello Jayesh,
 
-Your Jenkins pipeline SUCCEEDED!
+Your Jenkins pipeline SUCCEEDED ✅
+
+Image pushed:
+${IMAGE_NAME}:${IMAGE_TAG}
 
 Build Number: ${env.BUILD_NUMBER}
 URL: ${env.BUILD_URL}
@@ -113,5 +114,4 @@ Jenkins
             )
         }
     }
-}
 }
