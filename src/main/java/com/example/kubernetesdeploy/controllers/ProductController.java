@@ -21,6 +21,11 @@ public class ProductController {
         return "this is newly deployed spring boot app";
     }
 
+    @GetMapping("/new")
+    public String newProduct(){
+        return " we are in end to end devops pile line that works throught the git => jenkins => git hub update => argo => container => k8s cluster";
+    }
+
     @GetMapping("/jayesh")
     public String jayesh() {
         return " this end point is deployed automatically";
