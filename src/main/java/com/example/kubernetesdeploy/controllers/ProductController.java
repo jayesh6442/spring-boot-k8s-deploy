@@ -16,6 +16,10 @@ public class ProductController {
         this.productService = productService;
     }
 
+    @GetMapping("/test")
+    public  String test(){
+        return "this is newly deployed spring boot app";
+    }
 
     @GetMapping("/jayesh")
     public String jayesh() {
