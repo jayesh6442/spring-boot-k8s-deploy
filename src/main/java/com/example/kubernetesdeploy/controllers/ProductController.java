@@ -44,7 +44,7 @@ public class ProductController {
     ) {
         return productService.updateProduct(product, id);
     }
-
+// new edti to test
     @DeleteMapping("/{id}")
     public void deleteProductById(@PathVariable Long id) {
         productService.deleteProductById(id);
